@@ -1,0 +1,8 @@
+version: '3'
+services:
+  nazuna:
+    build: .
+    ports:
+    - "8081:8081"
+    volumes:
+    - .:/nodejs

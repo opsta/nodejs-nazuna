@@ -1,0 +1,33 @@
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+nameOverride: nodejs-nazuna
+serviceNameSuffix: service
+
+nodejs:
+  replicaCount: 3
+  image:
+    repository: opsta/nodejs-nazuna
+    tag: dev
+    pullPolicy: Always
+  containerPorts:
+    - 8081
+  env:
+    - name: NODE_ENV
+      value: deployment
+  #command:
+  #  - sh
+  #  - entrypoint.sh
+  # healthCheck:
+  #   path: /
+  #   port: 8081
+  # annotations:
+  #   service.beta.kubernetes.io/aws-load-balancer-ssl-cert: ""
+  #   service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
+  service:
+    type: NodePort
+    ports:
+      - name: node-nazuna-http
+        externalPort: 8081
+        internalPort: 8081
+        protocol: TCP

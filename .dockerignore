@@ -1,0 +1,6 @@
+.vscode
+.node_modules
+helm
+.gitlab-ci.yml
+.gitignore
+.dockerignore

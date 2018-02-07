@@ -1,0 +1,33 @@
+stages:
+  - build-image
+  - deploy
+
+build-dev-image:
+  stage: build-image
+  before_script:
+    - "docker login $CI_REGISTRY -u gitlab-ci-token -p $CI_BUILD_TOKEN"
+  script:
+    - "docker build -t $CI_REGISTRY/opsta/nodejs-nazuna-app/dev:${CI_COMMIT_SHA:0:7} ."
+    - "docker push $CI_REGISTRY/opsta/nodejs-nazuna-app/dev:${CI_COMMIT_SHA:0:7}"
+  after_script:
+    - "docker image rm $CI_REGISTRY/opsta/nodejs-nazuna-app/dev:${CI_COMMIT_SHA:0:7}"
+  tags:
+    - office-runner
+  only:
+    - dev
+
+dev-k8s-deploy:
+  image: git-registry.opsta.io/opsta/docker-base:latest
+  stage: deploy
+  before_script:
+    - mkdir ~/.kube
+    - echo -n "${KUBE_CONFIG}" | base64 -d > ~/.kube/config
+    - kubectl config use-context admin-opsta.local
+    - "helm init --client-only"
+  script:
+    - "git clone https://gitlab-ci-token:$CI_BUILD_TOKEN@git.opsta.io:opsta/kubernetes-charts.git /kubernetes-charts"
+    - "helm upgrade -i nazuna-dev /kubernetes-charts/opsta/helm-nodejs --namespace dev -f helm/values-nazuna-dev.yaml"
+  tags:
+    - docker
+  only:
+    - dev
