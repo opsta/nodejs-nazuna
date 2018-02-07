@@ -1,0 +1,7 @@
+apiVersion: v1
+description: nodejs application.
+name: nodejs-app
+version: 0.1.2
+maintainers:
+- name: Tat
+  email: tat@opsta.co.th

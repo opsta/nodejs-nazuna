@@ -4,3 +4,5 @@ helm
 .gitlab-ci.yml
 .gitignore
 .dockerignore
+docker-compose.yml
+Dockerfile

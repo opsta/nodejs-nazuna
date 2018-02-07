@@ -1,0 +1,148 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ template "name" . }}
+  labels:
+    app: {{ template "name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    release: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.nodejs.replicaCount }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 100%
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: {{ template "name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      {{- if .Values.nodejs.podAntiAffinity }}
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                  matchExpressions:
+                    - key: "app"
+                      operator: In
+                      values:
+                      - {{ template "name" . }}
+              topologyKey: "kubernetes.io/hostname"
+      {{- end }}
+      {{- if .Values.nodejs.imagePullSecrets }}
+      imagePullSecrets:
+        - name: {{ .Values.nodejs.imagePullSecrets.name }}
+      {{- end }}
+      terminationGracePeriodSeconds: 10
+      containers:
+        - name: {{ template "name" . }}
+          image: "{{ .Values.nodejs.image.repository }}:{{ .Values.nodejs.image.tag }}"
+          imagePullPolicy: {{ .Values.nodejs.image.pullPolicy }}
+          {{- if .Values.nodejs.workingDir }}
+          workingDir: {{ .Values.nodejs.workingDir }}
+          {{- end }}
+          {{- if .Values.nodejs.command }}
+          command:
+            {{- range .Values.nodejs.command }}
+            - {{ . }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.nodejs.env }}
+          env:
+            {{- range .Values.nodejs.env }}
+            - name: {{ .name }}
+              {{- if .secret }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .secret.name }}
+                  key: {{ .secret.key }}
+              {{- else if .configmap }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .configmap.name }}
+                  key: {{ .configmap.key }}
+              {{- else }}
+              value: {{ .value | quote }}
+              {{- end }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.nodejs.containerPorts }}
+          ports:
+            {{- range .Values.nodejs.containerPorts }}
+            - containerPort: {{ . }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.nodejs.volumeMounts }}
+          volumeMounts:
+            {{- range .Values.nodejs.volumeMounts }}
+            - name: {{ .name }}
+              mountPath: {{ .mountPath }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.nodejs.healthCheck }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.nodejs.healthCheck.path }}
+              port: {{ .Values.nodejs.healthCheck.port }}
+            initialDelaySeconds: 5
+            timeoutSeconds: 1
+            periodSeconds: 15
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.nodejs.healthCheck.path }}
+              port: {{ .Values.nodejs.healthCheck.port }}
+            initialDelaySeconds: 180
+            timeoutSeconds: 1
+            periodSeconds: 15
+          {{- end }}
+          {{- if .Values.nodejs.resources }}
+          resources:
+            {{- if .Values.nodejs.resources.requests }}
+            requests:
+              {{- if .Values.nodejs.resources.requests.cpu }}
+              cpu: "{{ .Values.nodejs.resources.requests.cpu }}"
+              {{- end }}
+              {{- if .Values.nodejs.resources.requests.memory }}
+              memory: "{{ .Values.nodejs.resources.requests.memory }}"
+              {{- end }}
+            {{- end }}
+            {{- if .Values.nodejs.resources.limits }}
+            limits:
+              {{- if .Values.nodejs.resources.limits.cpu }}
+              cpu: "{{ .Values.nodejs.resources.limits.cpu }}"
+              {{- end }}
+              {{- if .Values.nodejs.resources.limits.memory }}
+              memory: "{{ .Values.nodejs.resources.limits.memory }}"
+              {{- end }}
+            {{- end }}
+          {{- end }}
+  {{- if .Values.nodejs.volumes }}
+  {{- if .Values.nodejs.volumes.volumeClaimTemplates }}
+  volumeClaimTemplates:
+    {{- range .Values.nodejs.volumes.volumeClaimTemplates }}
+    - metadata:
+        name: {{ .name }}
+      spec:
+        storageClassName: {{ .storageClass | default "default" | quote }}
+        accessModes: [ {{ .accessModes | quote }} ]
+        resources:
+          requests:
+            storage: {{ .size }}
+    {{- end }}
+  {{- else if .Values.nodejs.volumes.volumes }}
+      volumes:
+        {{- range .Values.nodejs.volumes.volumes }}
+        - name: {{ .name }}
+          {{- if .hostPath }}
+          hostPath:
+            path: {{ .hostPath }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+        {{- end }}
+  {{- end }}
+  {{- end }}
