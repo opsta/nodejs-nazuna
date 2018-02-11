@@ -1,8 +1,9 @@
 .vscode
 .node_modules
-helm
+k8s*
 .gitlab-ci.yml
 .gitignore
 .dockerignore
 docker-compose.yml
 Dockerfile
+Makefile

@@ -17,7 +17,7 @@ build-dev-image:
     - dev
 
 dev-k8s-deploy:
-  image: git-registry.opsta.io/opsta/docker-base:latest
+  image: opsta/docker-base:latest
   stage: deploy
   before_script:
     - mkdir ~/.kube
