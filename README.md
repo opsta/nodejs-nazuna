@@ -19,10 +19,10 @@ make build
 
 There is k8s directory that consist all deployment files for Kubernetes
 
-- namespace: To create namespace for all environment
-- ingress: To create ingress for each environment
-- helm-nodejs: Helm template for NodeJS
-- helm-nodejs/values-nazuna-*.yml: Helm values for each environment
+- **namespace.yml**: To create namespace for all environment
+- **ingress.yml**: To create ingress for each environment
+- **helm-nodejs/**: Helm template for NodeJS
+- **helm-nodejs/values-nazuna-*.yml**: Helm values for each environment
 
 Useful commands
 
