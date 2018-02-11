@@ -1,0 +1,42 @@
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: nazuna-ingress-dev
+  namespace: dev
+spec:
+  rules:
+  - host: nazuna.dev.demo.opsta.co.th
+    http:
+      paths:
+      - backend:
+          serviceName: nazuna-dev-service
+          servicePort: 8081
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: nazuna-ingress-uat
+  namespace: uat
+spec:
+  rules:
+  - host: nazuna.uat.demo.opsta.co.th
+    http:
+      paths:
+      - backend:
+          serviceName: nazuna-uat-service
+          servicePort: 8081
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: nazuna-ingress-prod
+  namespace: prod
+spec:
+  rules:
+  - host: nazuna.demo.opsta.co.th
+    http:
+      paths:
+      - backend:
+          serviceName: nazuna-prod-service
+          servicePort: 8081

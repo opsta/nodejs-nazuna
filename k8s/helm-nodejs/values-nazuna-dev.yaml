@@ -1,0 +1,26 @@
+nodejs:
+  nameOverride: nazuna-dev
+  serviceNameSuffix: service
+  replicaCount: 3
+  image:
+    repository: opsta/nazuna
+    tag: dev
+    pullPolicy: Always
+  containerPorts:
+    - 8081
+  env:
+    - name: NODE_ENV
+      value: deployment
+  #command:
+  #  - sh
+  #  - entrypoint.sh
+  healthCheck:
+    path: /
+    port: 8081
+  type: NodePort
+  default:
+    ports:
+      - name: nazuna-http
+        externalPort: 8081
+        internalPort: 8081
+        protocol: TCP

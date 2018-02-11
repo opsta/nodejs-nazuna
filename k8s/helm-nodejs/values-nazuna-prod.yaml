@@ -1,14 +1,10 @@
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
-
-nameOverride: nodejs-nazuna
-serviceNameSuffix: service
-
 nodejs:
+  nameOverride: nazuna-prod
+  serviceNameSuffix: service
   replicaCount: 3
   image:
     repository: opsta/nazuna
-    tag: dev
+    tag: prod
     pullPolicy: Always
   containerPorts:
     - 8081
@@ -18,13 +14,13 @@ nodejs:
   #command:
   #  - sh
   #  - entrypoint.sh
-  # healthCheck:
-  #   path: /
-  #   port: 8081
-  type: LoadBalancer
+  healthCheck:
+    path: /
+    port: 8081
+  type: NodePort
   default:
     ports:
-      - name: node-nazuna-http
+      - name: nazuna-http
         externalPort: 8081
         internalPort: 8081
         protocol: TCP
