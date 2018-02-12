@@ -10,10 +10,19 @@ nodejs:
     - 8081
   env:
     - name: NODE_ENV
-      value: deployment
-  #command:
-  #  - sh
-  #  - entrypoint.sh
+      value: dev
+    - name: NODE_GRAYLOG_HOST
+      value: graylog.demo.opsta.co.th
+    - name: NODE_GRAYLOG_PORT
+      value: 12201
+    - name: NODE_STATSD_HOST
+      value: statsd.demo.opsta.co.th
+    - name: NODE_STATSD_PORT
+      value: 8125
+    - name: NODE_STATSD_PREFIX
+      value: dev_nazuna_
+    - name: NODE_INFLUXDB_URI
+      value: http://influxdb.demo.opsta.co.th:8086/statsd
   healthCheck:
     path: /
     port: 8081
