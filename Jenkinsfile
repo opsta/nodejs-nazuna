@@ -33,7 +33,7 @@ podTemplate(label: 'nazuna-slave', containers: [
           }
           // Get commit id to tag from docker image
           CODE_VERSION = sh (
-            script: "docker run -it --rm ${imageTagProd} cat VERSION",
+            script: "docker run --rm ${imageTagProd} cat VERSION",
             returnStdout: true
           ).trim()
         }
@@ -41,13 +41,16 @@ podTemplate(label: 'nazuna-slave', containers: [
 
       stage('Tag commit id to version and push code') {
         container('git') {
-          checkout ([$class: 'GitSCM',
-            branches: [[name: CODE_VERSION ]]
-          ])
-          sh """
-            git tag build-${env.BUILD_NUMBER}
-            git push --tags
-            """
+          sshagent(credentials: ['nazuna-git-deploy-key']) {
+            checkout scm
+            checkout([$class: 'GitSCM',
+              branches: [[name: CODE_VERSION ]]
+            ])
+            sh """
+              git tag build-${env.BUILD_NUMBER}
+              SSH_AUTH_SOCK=${env.SSH_AUTH_SOCK} GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" git push --tags
+              """
+          }
         }
       }
 
