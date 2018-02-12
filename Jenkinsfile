@@ -1,4 +1,4 @@
-node {
+node("nazuna") {
   def appName = 'nazuna'
   def imageTag = "opsta/${appName}:${env.BRANCH_NAME}"
 
@@ -8,7 +8,7 @@ node {
   sh("docker build -t ${imageTag} .")
 
   stage 'Push image to registry'
-  sh("docker push push ${imageTag}")
+  sh("docker push ${imageTag}")
 
   stage "Deploy Application"
   switch (env.BRANCH_NAME) {
