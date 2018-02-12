@@ -1,6 +1,7 @@
 properties([
   parameters([
-    choice(choices: 'deploy-by-branch\ntagging\ndeploy-production', description: 'Action to do', name: 'ACTION', defaultValue: 'deploy-by-branch')
+    choice(choices: 'deploy-by-branch\ntagging\ndeploy-production', description: 'Action to do', name: 'ACTION', defaultValue: 'deploy-by-branch'),
+    git(description: 'Choosing tag to deploy', name: 'TAG')
   ]),
   gitLabConnection('gitlab-opsta')
 ])
