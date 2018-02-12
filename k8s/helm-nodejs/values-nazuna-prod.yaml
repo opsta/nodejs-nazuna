@@ -10,7 +10,7 @@ nodejs:
     - 8081
   env:
     - name: NODE_ENV
-      value: production
+      value: prod
     - name: NODE_GRAYLOG_HOST
       value: graylog.demo.opsta.co.th
     - name: NODE_GRAYLOG_PORT
