@@ -1,6 +1,6 @@
 properties([
   parameters([
-    choice(choices: 'deploy-by-branch\ntagging\ndeploy-production', description: 'Action to do', name: 'action', defaultValue: '')
+    choice(choices: 'deploy-by-branch\ntagging\ndeploy-production', description: 'Action to do', name: 'action', defaultValue: 'deploy-by-branch')
   ]),
   gitLabConnection('gitlab-opsta')
 ])
@@ -13,10 +13,28 @@ podTemplate(label: 'nazuna-slave', containers: [
     hostPathVolume(mountPath: '/var/run/docker.sock', hostPath: '/var/run/docker.sock'),
 ]) {
   node('nazuna-slave') {
-    if(params.action == "deploy") {
+
+    appName = 'nazuna'
+
+    if(params.action == "tagging") {
+      // Tag Docker Image from UAT
+      stage('Pull UAT image and tag to production image') {
+        container('docker') {
+          imageTag = "opsta/${appName}:uat"
+          imageTagProd = "opsta/${appName}:build-${env.BUILD_NUMBER}"
+          withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_HUB_USER', passwordVariable: 'DOCKER_HUB_PASSWORD')]) {
+            sh """
+              docker login -u $DOCKER_HUB_USER -p $DOCKER_HUB_PASSWORD
+              docker pull ${imageTag}
+              docker tag ${imageTag} ${imageTagProd}
+              docker push ${imageTagProd}
+              """
+          }
+        }
+      }
+    } else if(params.action == "deploy-production") {
       // Deploy to production
-    } else {
-      appName = 'nazuna'
+    } else if(params.action == "deploy-by-branch") {
       switch (env.BRANCH_NAME) {
         case "master":
           imageTag = "opsta/${appName}:uat"
