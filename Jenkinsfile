@@ -1,6 +1,6 @@
 properties([
   parameters([
-    string(name: 'action', defaultValue: '')
+    choice(choices: 'deploy-by-branch\ntagging\ndeploy-production', description: 'Action to do', name: 'action', defaultValue: '')
   ]),
   gitLabConnection('gitlab-opsta')
 ])
@@ -13,7 +13,7 @@ podTemplate(label: 'nazuna-slave', containers: [
     hostPathVolume(mountPath: '/var/run/docker.sock', hostPath: '/var/run/docker.sock'),
 ]) {
   node('nazuna-slave') {
-    if(action == "deploy") {
+    if(params.action == "deploy") {
       // Deploy to production
     } else {
       appName = 'nazuna'
