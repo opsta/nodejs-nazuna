@@ -7,7 +7,8 @@ properties([
 
 podTemplate(label: 'nazuna-slave', containers: [
     containerTemplate(name: 'docker', image: 'docker', ttyEnabled: true, command: 'cat'),
-    containerTemplate(name: 'helm', image: 'lachlanevenson/k8s-helm', command: 'cat', ttyEnabled: true)
+    containerTemplate(name: 'helm', image: 'lachlanevenson/k8s-helm', command: 'cat', ttyEnabled: true),
+    containerTemplate(name: 'git', image: 'paasmule/curl-ssl-git', command: 'cat', ttyEnabled: true)
   ],
   volumes: [
     hostPathVolume(mountPath: '/var/run/docker.sock', hostPath: '/var/run/docker.sock'),
@@ -15,10 +16,9 @@ podTemplate(label: 'nazuna-slave', containers: [
   node('nazuna-slave') {
 
     appName = 'nazuna'
-    scmVars = checkout scm
 
     if(params.ACTION == "tagging") {
-      // Tag Docker Image from UAT
+
       stage('Pull UAT image and tag to production image') {
         container('docker') {
           imageTag = "opsta/${appName}:uat"
@@ -31,8 +31,26 @@ podTemplate(label: 'nazuna-slave', containers: [
               docker push ${imageTagProd}
               """
           }
+          // Get commit id to tag from docker image
+          CODE_VERSION = sh (
+            script: "docker run -it --rm ${imageTagProd} cat VERSION",
+            returnStdout: true
+          ).trim()
         }
       }
+
+      stage('Tag commit id to version and push code') {
+        container('git') {
+          checkout ([$class: 'GitSCM',
+            branches: [[name: CODE_VERSION ]]
+          ])
+          sh """
+            git tag build-${env.BUILD_NUMBER}
+            git push --tags
+            """
+        }
+      }
+
     } else if(params.ACTION == "deploy-production") {
       // Deploy to production
     } else if(params.ACTION == "deploy-by-branch") {
@@ -44,6 +62,8 @@ podTemplate(label: 'nazuna-slave', containers: [
           imageTag = "opsta/${appName}:dev"
           break
       }
+
+      scmVars = checkout scm
 
       stage('Build image') {
         container('docker') {
