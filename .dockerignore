@@ -1,9 +1,11 @@
-.vscode
-.node_modules
-k8s*
+.git
+.dockerignore
 .gitlab-ci.yml
 .gitignore
-.dockerignore
+.node_modules
+.vscode
 docker-compose.yml
 Dockerfile
+Jenkinsfile
+k8s*
 Makefile

@@ -1,6 +1,6 @@
 properties([
   parameters([
-    choice(choices: 'deploy-by-branch\ntagging\ndeploy-production', description: 'Action to do', name: 'action', defaultValue: 'deploy-by-branch')
+    choice(choices: 'deploy-by-branch\ntagging\ndeploy-production', description: 'Action to do', name: 'ACTION', defaultValue: 'deploy-by-branch')
   ]),
   gitLabConnection('gitlab-opsta')
 ])
@@ -15,8 +15,9 @@ podTemplate(label: 'nazuna-slave', containers: [
   node('nazuna-slave') {
 
     appName = 'nazuna'
+    scmVars = checkout scm
 
-    if(params.action == "tagging") {
+    if(params.ACTION == "tagging") {
       // Tag Docker Image from UAT
       stage('Pull UAT image and tag to production image') {
         container('docker') {
@@ -32,9 +33,9 @@ podTemplate(label: 'nazuna-slave', containers: [
           }
         }
       }
-    } else if(params.action == "deploy-production") {
+    } else if(params.ACTION == "deploy-production") {
       // Deploy to production
-    } else if(params.action == "deploy-by-branch") {
+    } else if(params.ACTION == "deploy-by-branch") {
       switch (env.BRANCH_NAME) {
         case "master":
           imageTag = "opsta/${appName}:uat"
@@ -44,11 +45,12 @@ podTemplate(label: 'nazuna-slave', containers: [
           break
       }
 
-      checkout scm
-
       stage('Build image') {
         container('docker') {
-          sh("docker build -t ${imageTag} .")
+          sh """
+            echo ${scmVars.GIT_COMMIT} > VERSION
+            docker build -t ${imageTag} .
+            """
         }
       }
 
