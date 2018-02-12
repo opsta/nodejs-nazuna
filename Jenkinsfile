@@ -57,6 +57,20 @@ podTemplate(label: 'nazuna-slave', containers: [
 
     } else if(params.ACTION == "deploy-production") {
       // Deploy to production
+      stage('Deploy production') {
+        checkout scm
+        container('helm') {
+          withCredentials([file(credentialsId: 'gce-k8s-kubeconfig', variable: 'KUBECONFIG')]) {
+            sh """
+              mkdir -p ~/.kube/
+              cat $KUBECONFIG > ~/.kube/config
+              sed -i 's/tag: .*/tag: ${params.TAG}/g' k8s/helm-nodejs/values-nazuna-prod.yaml
+              helm upgrade --namespace prod -f k8s/helm-nodejs/values-nazuna-prod.yaml --wait nazuna-prod k8s/helm-nodejs
+              """
+          }
+        }
+      }
+
     } else if(params.ACTION == "deploy-by-branch") {
       switch (env.BRANCH_NAME) {
         case "master":
