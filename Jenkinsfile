@@ -1,4 +1,4 @@
-node("nazuna") {
+node("nazuna-slave") {
   def appName = 'nazuna'
   def imageTag = "opsta/${appName}:${env.BRANCH_NAME}"
 
