@@ -1,14 +1,20 @@
+properties([gitLabConnection('gitlab-opsta')])
+
 podTemplate(label: 'nazuna-slave', containers: [
     containerTemplate(name: 'docker', image: 'docker', ttyEnabled: true, command: 'cat'),
-    containerTemplate(name: 'helm', image: 'lachlanevenson/k8s-helm:latest', command: 'cat', ttyEnabled: true)
+    containerTemplate(name: 'helm', image: 'lachlanevenson/k8s-helm', command: 'cat', ttyEnabled: true)
   ],
   volumes: [
     hostPathVolume(mountPath: '/var/run/docker.sock', hostPath: '/var/run/docker.sock'),
 ]) {
   node('nazuna-slave') {
     def appName = 'nazuna'
-    // TODO
-    def imageTag = "opsta/${appName}:dev"
+    switch (env.BRANCH_NAME) {
+      case "master":
+        def imageTag = "opsta/${appName}:uat"
+      case "dev":
+        def imageTag = "opsta/${appName}:dev"
+    }
 
     checkout scm
 
@@ -31,17 +37,27 @@ podTemplate(label: 'nazuna-slave', containers: [
 
     stage("Deploy Application") {
       container('helm') {
+        // Put kubeconfig file
+        withCredentials([file(credentialsId: 'gce-k8s-kubeconfig', variable: 'KUBECONFIG')]) {
+          sh """
+            mkdir -p ~/.kube/
+            cat $KUBECONFIG > ~/.kube/config
+            """
+        }
         switch (env.BRANCH_NAME) {
+          // Roll out a UAT environment on master branch
+          case "master":
+            sh """
+              helm delete --purge nazuna-uat || true
+              helm install --namespace uat -f k8s/helm-nodejs/values-nazuna-uat.yaml --wait --name nazuna-uat k8s/helm-nodejs
+              """
+
           // Roll out a dev environment
-          default:
-            withCredentials([file(credentialsId: 'gce-k8s-kubeconfig', variable: 'KUBECONFIG')]) {
-              sh """
-                mkdir -p ~/.kube/
-                cat $KUBECONFIG > ~/.kube/config
-                helm delete --purge nazuna-dev || true
-                helm install --namespace dev -f k8s/helm-nodejs/values-nazuna-dev.yaml --wait --name nazuna-dev k8s/helm-nodejs
-                """
-            }
+          case "dev":
+            sh """
+              helm delete --purge nazuna-dev || true
+              helm install --namespace dev -f k8s/helm-nodejs/values-nazuna-dev.yaml --wait --name nazuna-dev k8s/helm-nodejs
+              """
         }
       }
     }
