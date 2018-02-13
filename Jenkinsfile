@@ -116,7 +116,7 @@ podTemplate(label: 'nazuna-slave', containers: [
             // Roll out a UAT environment on master branch
             case "master":
               sh """
-                sed -i 's/value: CHANGE_COMMIT_ID/value: ${scmVars.GIT_COMMIT}/g' k8s/helm-nodejs/values-nazuna-prod.yaml
+                sed -i 's/value: CHANGE_COMMIT_ID/value: ${scmVars.GIT_COMMIT}/g' k8s/helm-nodejs/values-nazuna-uat.yaml
                 helm upgrade -i --namespace uat -f k8s/helm-nodejs/values-nazuna-uat.yaml --wait nazuna-uat k8s/helm-nodejs
                 """
               break
@@ -124,7 +124,7 @@ podTemplate(label: 'nazuna-slave', containers: [
             // Roll out a dev environment
             case "dev":
               sh """
-                sed -i 's/value: CHANGE_COMMIT_ID/value: ${scmVars.GIT_COMMIT}/g' k8s/helm-nodejs/values-nazuna-prod.yaml
+                sed -i 's/value: CHANGE_COMMIT_ID/value: ${scmVars.GIT_COMMIT}/g' k8s/helm-nodejs/values-nazuna-dev.yaml
                 helm upgrade -i --namespace dev -f k8s/helm-nodejs/values-nazuna-dev.yaml --wait nazuna-dev k8s/helm-nodejs
                 """
               break
