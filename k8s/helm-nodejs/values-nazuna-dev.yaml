@@ -23,6 +23,8 @@ nodejs:
       value: dev_nazuna_
     - name: NODE_INFLUXDB_URI
       value: http://influxdb.demo.opsta.co.th:8086/statsd
+    - name: COMMIT_ID
+      value: CHANGE_COMMIT_ID
   healthCheck:
     path: /
     port: 8081
